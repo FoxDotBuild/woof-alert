@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <WiFi.h>
+#include <HTTPClient.h>
 
 int soundDetectedPin = 14;
 int soundDetectedVal = HIGH;
@@ -16,6 +17,7 @@ void setup()
   wifiStart();
   Serial.println("=== INIT");
 }
+
 void loop()
 {
   soundDetectedVal = digitalRead(soundDetectedPin);
@@ -46,6 +48,7 @@ void maybeStartAlarm()
   if (!bAlarm)
   {
     Serial.println("=== ENTER ALARM STATE");
+    sendHttpAlert();
     bAlarm = true;
   }
 }
@@ -70,4 +73,39 @@ void wifiStart()
   Serial.println("Connection established!");
   Serial.print("IP address:\t");
   Serial.println(WiFi.localIP()); // Send the IP address of the ESP8266 to the computer
+}
+
+void sendHttpAlert()
+{
+  if (WiFi.status() == WL_CONNECTED)
+  { //Check WiFi connection status
+
+    HTTPClient http;
+
+    http.begin("http://10.1.10.145:3000/blah");   //Specify destination for HTTP request
+    http.addHeader("Content-Type", "text/plain"); //Specify content-type header
+
+    int httpResponseCode = http.POST("POSTING from ESP32"); //Send the actual POST request
+
+    if (httpResponseCode > 0)
+    {
+
+      String response = http.getString(); //Get the response to the request
+
+      Serial.println(httpResponseCode); //Print return code
+    }
+    else
+    {
+
+      Serial.print("Error on sending POST: ");
+      Serial.println(httpResponseCode);
+    }
+
+    http.end(); //Free resources
+  }
+  else
+  {
+
+    Serial.println("Error in WiFi connection");
+  }
 }
