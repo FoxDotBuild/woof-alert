@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 int soundDetectedPin = 14;
 int soundDetectedVal = HIGH;
 boolean bAlarm = false;
@@ -10,7 +12,7 @@ void setup()
 {
   Serial.begin(115200);
   pinMode(soundDetectedPin, INPUT);
-  Serial.println("Beep boop");
+  Serial.println("=== INIT");
 }
 void loop()
 {
@@ -18,21 +20,30 @@ void loop()
 
   if (soundDetectedVal == LOW)
   {
-
-    lastSoundDetectTime = millis();
-
-    if (!bAlarm)
-    {
-      Serial.println("LOUD, LOUD");
-      bAlarm = true;
-    }
+    maybeStartAlarm();
   }
   else
   {
-    if ((millis() - lastSoundDetectTime) > soundAlarmTime && bAlarm)
-    {
-      Serial.println("quiet");
-      bAlarm = false;
-    }
+    maybeStopAlarm();
+  }
+}
+
+void maybeStopAlarm()
+{
+  if ((millis() - lastSoundDetectTime) > soundAlarmTime && bAlarm)
+  {
+    Serial.println("=== EXIT ALARM STATE");
+    bAlarm = false;
+  }
+}
+
+void maybeStartAlarm()
+{
+  lastSoundDetectTime = millis();
+
+  if (!bAlarm)
+  {
+    Serial.println("=== ENTER ALARM STATE");
+    bAlarm = true;
   }
 }
