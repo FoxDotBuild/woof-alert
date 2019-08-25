@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <WiFi.h>
 
 int soundDetectedPin = 14;
 int soundDetectedVal = HIGH;
@@ -12,6 +13,7 @@ void setup()
 {
   Serial.begin(115200);
   pinMode(soundDetectedPin, INPUT);
+  wifiStart();
   Serial.println("=== INIT");
 }
 void loop()
@@ -46,4 +48,26 @@ void maybeStartAlarm()
     Serial.println("=== ENTER ALARM STATE");
     bAlarm = true;
   }
+}
+
+const char *ssid = "FOX.BUILD";     // The SSID (name) of the Wi-Fi network you want to connect to
+const char *password = "fox.build"; // The password of the Wi-Fi network
+
+void wifiStart()
+{
+  delay(10);
+
+  WiFi.begin(ssid, password); // Connect to the network
+  Serial.print("Connecting to ");
+  Serial.print(ssid);
+
+  while (WiFi.status() != WL_CONNECTED)
+  { // Wait for the Wi-Fi to connect
+    delay(500);
+    Serial.print('.');
+  }
+
+  Serial.println("Connection established!");
+  Serial.print("IP address:\t");
+  Serial.println(WiFi.localIP()); // Send the IP address of the ESP8266 to the computer
 }
