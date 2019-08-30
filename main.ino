@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include "secrets.h"
 
 int soundDetectedPin = 14;
 int soundDetectedVal = HIGH;
@@ -15,26 +16,18 @@ void setup()
   Serial.begin(115200);
   pinMode(soundDetectedPin, INPUT);
   wifiStart();
-  Serial.println("=== INIT");
+  Serial.println("=== START");
 }
 
 void loop()
 {
-  soundDetectedVal = digitalRead(soundDetectedPin);
-
-  if (soundDetectedVal == LOW)
-  {
-    maybeStartAlarm();
-  }
-  else
-  {
-    maybeStopAlarm();
-  }
+  digitalRead(soundDetectedPin) == LOW ? maybeStartAlarm() : maybeStopAlarm();
 }
 
 void maybeStopAlarm()
 {
-  if ((millis() - lastSoundDetectTime) > soundAlarmTime && bAlarm)
+  unsigned long diff = millis() - lastSoundDetectTime;
+  if ((diff > soundAlarmTime) && bAlarm)
   {
     Serial.println("=== EXIT ALARM STATE");
     bAlarm = false;
@@ -53,16 +46,18 @@ void maybeStartAlarm()
   }
 }
 
-const char *ssid = "FOX.BUILD";     // The SSID (name) of the Wi-Fi network you want to connect to
-const char *password = "fox.build"; // The password of the Wi-Fi network
-
 void wifiStart()
 {
   delay(10);
-
-  WiFi.begin(ssid, password); // Connect to the network
   Serial.print("Connecting to ");
-  Serial.print(ssid);
+  Serial.print(WOOF_WIFI_SSID);
+
+#if defined(WOOF_WIFI_PASSWORD)
+  WiFi.begin(WOOF_WIFI_SSID, WOOF_WIFI_PASSWORD);
+#else
+  Serial.println("...with no password.");
+  WiFi.begin(WOOF_WIFI_SSID);
+#endif
 
   while (WiFi.status() != WL_CONNECTED)
   { // Wait for the Wi-Fi to connect
@@ -82,17 +77,13 @@ void sendHttpAlert()
 
     HTTPClient http;
 
-    http.begin("http://10.1.10.145:3000/blah");   //Specify destination for HTTP request
-    http.addHeader("Content-Type", "text/plain"); //Specify content-type header
-
-    int httpResponseCode = http.POST("POSTING from ESP32"); //Send the actual POST request
+    http.begin(WOOF_POST_URL);
+    http.addHeader("Content-Type", "text/plain");
+    int httpResponseCode = http.POST("Woof!");
 
     if (httpResponseCode > 0)
     {
-
-      String response = http.getString(); //Get the response to the request
-
-      Serial.println(httpResponseCode); //Print return code
+      Serial.println(http.getString()); //Show response in terminal (debug)
     }
     else
     {
@@ -101,11 +92,10 @@ void sendHttpAlert()
       Serial.println(httpResponseCode);
     }
 
-    http.end(); //Free resources
+    http.end();
   }
   else
   {
-
-    Serial.println("Error in WiFi connection");
+    Serial.println("WiFi FAILURE");
   }
 }
