@@ -3,10 +3,12 @@
 Keep your home safe. Woof Alert™ is a special dog collar that sends you email alerts whenever your dog barks. By leveraging the power of the ESP32 and state of the art sound detection modules, Woof Alert™ puts _you_ in control.
 
 ![](barry.jpg)
+![](device.jpg)
+![](screenshot.png)
 
 # Are You Serious?
 
-Nope. Lighten up.
+Nope! This is one of those "I wonder if..." projects to help me learn more about the [ESP32](https://www.espressif.com/en/products/hardware/esp32/overview). My dog probably wore the thing for less than 5 minutes and at no point did I intend to actually solve real problems.
 
 # Installation - Software
 
@@ -34,7 +36,25 @@ Here's how I did it:
 
 ![](wiring.jpg)
 
-# Deployment
+# Deploying a Webhook Service
+
+The collar sends an HTTP POST to the URL defined as `WOOF_POST_URL` within `secrets.h`.
+
+I wrote this awful snippet in PHP to send myself an email:
+
+```php
+
+<?php
+  $message = "I SEE SOMETHING!";
+  $message = wordwrap($message, 70, "\r\n");
+
+  mail('foo@bar.com', 'Woof!', $message);
+?>
+
+```
+
+Alternatively, you could use a slack webhook URL (probably).
+# Deploying the Hardware
 
 Cut a tube and insert the ESP, microphone and a small USB power bank. Attach the tube to a standard collar, making sure that there are no exposed wires or uncomfortable pokey things that might annoy your doggo.
 

@@ -9,7 +9,7 @@ boolean bAlarm = false;
 
 unsigned long lastSoundDetectTime;
 
-int soundAlarmTime = 500;
+int soundAlarmTime = 25;
 
 void setup()
 {
